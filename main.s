@@ -1,24 +1,53 @@
-	#include <xc.inc>
+#include <xc.inc>
 
-psect	code, abs
-	
+    psect code, abs
+
 main:
-	org	0x0
-	goto	start
+    org	    0
+    goto    setup
+    
+setup:
+    bcf	    CFGS        ; Point to Flash memory 
+    bsf	    EEPGD       ; Access flash program memory
+    goto    start
 
-	org	0x100		    ; Main code starts here at address 0x100
+myTable:
+    myArray	EQU 0x400
+    counter	EQU 0x10
+    align 2
+
 start:
-	movlw 	0x0
-	movwf	TRISB, C	    ; Port C all outputs
-	bra 	test
-loop:
-	movff 	0x06, PORTC
-	incf 	0x06, W, A
-test:
-	movwf	0x06, A	    ; Test for end of loop condition
-	movlw 	0x63
-	cpfsgt 	0x06, A
-	bra 	loop		    ; Not yet finished goto start of loop again
-	goto 	0x0		    ; Re-run program from start
+    lfsr    0, myArray ; Load FSR0 with address in RAM
+    movlw   0x0
+    movwf   counter, A
+    clrf    TRISD, A  ;set Port D as output
 
-	end	main
+incresement:
+    movf    counter, W, A
+    movwf   PORTD   , A; Write to PORTD register
+    incf    counter, F, A
+    movlw   0xFE
+    cpfsgt  counter, A
+    bra	    incresement
+
+decresement:
+    ; Output the current value to DAC
+    movf    counter, W, A
+    movwf   PORTD, A   ; Write to PORTD register
+    decf    counter, F, A
+    movlw   0x00
+    cpfseq  counter, A
+    bra	    decresement
+    bra	    incresement
+
+loop:
+    movff counter, PORTD
+    incf counter, W, A
+test:
+    movwf counter, A 
+    movlw 0x63
+    cpfsgt counter, A
+    bra loop         ; Not yet finished, go to start of loop again
+    goto 0x0         ; Re-run program from start
+
+    end main
