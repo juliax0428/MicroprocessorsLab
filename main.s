@@ -52,13 +52,15 @@ test:
     call    delay
     call    delay
     bra	    loop         ; Not yet finished, go to start of loop again
-    goto    0x0         ; Re-run program from start
+    goto    start   ; Re-run program from start
     
 delay:
-    movlw   0xFF    ; W=0
+    movlw   0x00    ; W=0
+    setf    0x08, A
+    clrf    0x09, A
 Dloop:
     decf    0x08, f, A
-    subwfb  0x10, f, A
+    subwfb  0x09, f, A
     bc	    Dloop
     return
 
