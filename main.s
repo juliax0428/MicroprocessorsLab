@@ -5,32 +5,32 @@ main:
     org	    0
     goto    setup
     
-setup:
-    bcf	    CFGS		; Point to Flash memory 
-    bsf	    EEPGD		; Access flash program memory
-    goto    start
+    org	    0x100
+    
 
 myTable:
     db		'a','b','c','d','e','f','g','h','i'
     db		'1','2','3','4','5','6','7','8','9'
     myArray	EQU 0x400
     counter	EQU 0x10
-    align 2
+    num		EQU 16
+    align	2
 
+setup:
+    call	SPI_MasterInit
+    
 start:
-    lfsr    0, myArray		; Load FSR0 with address in RAM
     movlw   low highword(myTable)
     movwf   TBLPTRU, A
     movlw   high(myTable)
     movwf   TBLPTRH, A
     movlw   low(myTable)
     movwf   TBLPTRL,A
-    clrf    TRISD, A		;set Port D as output
-    call    SPI_MasterInit
-    call    SPI_MasterTransmit
+    movlw   num
+    movwf   counter, A
 
 loop:
-    tblrd*+
+    call    SPI_MasterTransmit
     movff   TABLAT, POSTINC0
     decfsz  counter, A
     bra	    loop
@@ -45,23 +45,26 @@ SPI_MasterInit:
 	return
 
 SPI_MasterTransmit:		    ; Start transmission of data (held in W)
+	tblrd*+
+	movf	TABLAT, W, A
 	movwf	SSP2BUF, A	    ; Write data to output buffer
+	call	Wait_Transmit
+	movlw	0xffff
+	movwf	0x20,A
+	call	delay
+	call	delay
+	return
+	
 Wait_Transmit:			    ; Wait for transmission to complete
 	btfss	PIR2, 5		    ; check interrupt flag to see if data has been sent; Bit Test File, Skip if Set
 	bra	Wait_Transmit
 	bcf	PIR2, 5		    ; Clear interrupt flag
 	return 
 	
-
     
 delay:
-    movlw   0x00    ; W=0
-    setf    0x08, A
-    clrf    0x09, A
-Dloop:
-    decf    0x08, f, A
-    subwfb  0x09, f, A
-    bc	    Dloop
-    return
+	decfsz	0x20, F, A
+	bra	delay
+	return
     
 	end	main
