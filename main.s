@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
-extrn	LCD_Setup, LCD_Write_Message
+extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Message_PM, LCD_Write_Message_2
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -14,8 +14,11 @@ psect	data
 	; ******* myTable, data in programme memory, and its length *****
 myTable:
 	db	'H','e','l','l','o',' ','W','o','r','l','d','!',0x0a
+anotherMessage:
+	db	'G','o','o','b','b','y','e',' ','W','o','r','l','d','!',0x0a
 					; message, plus carriage return
 	myTable_l   EQU	13	; length of data
+	another_l   EQU	15	; length of data
 	align	2
     
 psect	code, abs	
@@ -53,6 +56,19 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	lfsr	2, myArray
 	call	LCD_Write_Message
 
+	call	LCD_Write_Message_2
+	movlw	low highword(anotherMessage)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(anotherMessage)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(anotherMessage)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	another_l	; output message to LCD
+	addlw	0xff		; don't send the final carriage return to LCD
+	;lfsr	2, myArray
+	call	LCD_Write_Message_PM
+
+	
 	goto	$		; goto current line in code
 
 	; a delay subroutine if you need one, times around loop in delay_count
