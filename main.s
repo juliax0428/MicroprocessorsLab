@@ -15,7 +15,7 @@ psect	data
 myTable:
 	db	'H','e','l','l','o',' ','W','o','r','l','d','!',0x0a
 anotherMessage:
-	db	'G','o','o','b','b','y','e',' ','W','o','r','l','d','!',0x0a
+	db	'G','o','o','d','b','y','e',' ','W','o','r','l','d','!',0x0a
 					; message, plus carriage return
 	myTable_l   EQU	13	; length of data
 	another_l   EQU	15	; length of data
@@ -33,7 +33,7 @@ setup:	bcf	CFGS	; point to Flash program memory
 	goto	start
 	
 	; ******* Main programme ****************************************
-start: 	lfsr	0, myArray	; Load FSR0 with address in RAM	
+start: 	lfsr	0, myArray	; Load File Select Register FSR0 with address in RAM	
 	movlw	low highword(myTable)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
 	movlw	high(myTable)	; address of data in PM
@@ -42,11 +42,15 @@ start: 	lfsr	0, myArray	; Load FSR0 with address in RAM
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	myTable_l	; bytes to read
 	movwf 	counter, A		; our counter register
-loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
-	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
+	
+loop: 	
+	;****** Copying Data from Program Memory to RAM (myArray)************
+	tblrd*+			; Read one byte from PM to TABLAT, increment TBLPRT
+	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), increment FSR0 to next byte	
 	decfsz	counter, A		; count down to zero
 	bra	loop		; keep going until finished
-		
+	
+	;******* Outputting the Message to UART and LCD ************
 	movlw	myTable_l	; output message to UART
 	lfsr	2, myArray
 	call	UART_Transmit_Message
@@ -55,7 +59,8 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, myArray
 	call	LCD_Write_Message
-
+	
+	;******* Outputting the Message to LCD from Program Memory***********
 	call	LCD_Write_Message_2
 	movlw	low highword(anotherMessage)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
