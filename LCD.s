@@ -1,6 +1,14 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message
+global  LCD_Setup, LCD_Write_Message, LCD_Send_Byte_I, LCD_delay_ms, LCD_Write_Message_PM, LCD_Write_Message_2
+    
+psect	data    
+	; ******* myTable, data in programme memory, and its length ***** 
+myTable:
+	db	'H','e','l','l','o',' ','W','o','r','l','d','!',0x0a
+					; message, plus carriage return
+	myTable_l   EQU	13	; length of data
+	align	2
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -45,7 +53,7 @@ LCD_Setup:
 	movlw	10		; wait 40us
 	call	LCD_delay_x4us
 	return
-
+	
 LCD_Write_Message:	    ; Message stored at FSR2, length stored in W
 	movwf   LCD_counter, A
 LCD_Loop_message:
@@ -55,6 +63,40 @@ LCD_Loop_message:
 	bra	LCD_Loop_message
 	return
 
+LCD_Write_Message_PM:   ; Message stored at TBLPTR, length stored in W
+	movwf   LCD_counter, A
+LCD_Loop_message_pm:
+	loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT, W, A		; move data from TABLAT to W	
+	call    LCD_Send_Byte_D
+	decfsz  LCD_counter, A
+	bra	LCD_Loop_message_pm
+	return
+
+	;********Clear the LCD*****************************
+LCD_Clear_Display:
+        movlw   00000001B	    ; clear display command
+	call	LCD_Send_Byte_I
+	movlw	2
+	call	LCD_delay_ms
+	return
+	
+	;*******Write to the 2nd line of display************
+LCD_Write_Message_2:
+        movlw   11000000B
+	call    LCD_Send_Byte_I
+	movlw   9
+	call    LCD_delay_x4us
+	return
+	
+	;********Write data from program memory
+LCD_data_from_program:
+        movlw   01
+	call    LCD_Send_Byte_I
+	movlw   9
+	call    LCD_delay_x4us
+	return
+	
 LCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	movwf   LCD_tmp, A
 	swapf   LCD_tmp, W, A   ; swap nibbles, high nibble goes first
@@ -134,5 +176,3 @@ lcdlp1:	decf 	LCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 
 
     end
-
-
