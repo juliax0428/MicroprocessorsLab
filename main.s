@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
+extrn	Keypad_Setup_1, Keypad_Setup_2, Keypad_loop  ; external subroutines
 extrn	LCD_Setup, LCD_Write_Message
 	
 psect	udata_acs   ; reserve data space in access ram
@@ -25,7 +25,8 @@ rst: 	org 0x0
 	; ******* Programme FLASH read Setup Code ***********************
 setup:	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
-	call	UART_Setup	; setup UART
+	call	Keypad_Setup_1	; setup UART
+	call	Keypad_Setup_2
 	call	LCD_Setup	; setup UART
 	goto	start
 	
