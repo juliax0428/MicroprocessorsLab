@@ -10,33 +10,46 @@ Keypad_Value_Col: ds  1
     
     
 psect	Keypad_code,class=CODE
-Keypad_Setup_1:
+Keypad_Setup:
+    banksel	PADCFG1
     bsf		REPU
     clrf	LATE, A		; Write 0s to the LATE
+    clrf	TRISD
+    return
+    
+Keypad_Read:
+    call	Keypad_Setup_1
+    call	Keypad_Read_Row
+    call	Keypad_Setup_2
+    call	Keypad_Read_Col
+    movf	Keypad_Value_Row, W
+    iorwf	Keypad_Value_Col, W
+    movwf	PORTD
+    return
+    
+    
+Keypad_Setup_1:
     movlw	0x0F		;Set TRISE to 0x0F (0-3 as input, 4-7 as output)
     movwf	TRISE, A
-    movlw	    10
-    call	Keypad_delay_ms	; wait 10ms for Keypad output pins voltage to settle
+    call	Keypad_Delay	; wait 10ms for Keypad output pins voltage to settle
     return
     
 Keypad_Setup_2:
-    bsf		REPU
-    clrf	LATE, A		; Write 0s to the LATE
     movlw	0xF0		;Set TRISE to 0xF0 (0-3 as output, 4-7 as input)
     movwf	TRISE, A
     movlw	10
-    call	Keypad_delay_ms	; wait 10ms for Keypad output pins voltage to settle
+    call	Keypad_Delay	; wait 10ms for Keypad output pins voltage to settle
     return
     
 Keypad_Read_Row:
 	movf	PORTE, W	; Read PORTE to determine the logic levels on PORTE 0-3
 	movwf	Keypad_Value_Row
-	lfsr	1, Keypad_value_Row
+	return
 
 Keypad_Read_Col:
 	movf	PORTE, W	; Read PORTE to determine the logic levels on PORTE 4-7
 	movwf	Keypad_Value_Col
-	lfsr	2, Keypad_value_Col
+	return
 	
 Keypad_loop:
 	movf	Keypad_value_Row, W, A
@@ -139,19 +152,18 @@ Keypad_Decoding_0111:
     
     
  
-UART_Transmit_Message:	    ; Message stored at FSR2, length stored in W
-    movwf   UART_counter, A
-UART_Loop_message:
-    movf    POSTINC2, W, A
-    call    UART_Transmit_Byte
-    decfsz  UART_counter, A
-    bra	    UART_Loop_message
+Keypad_Delay:	    ; Message stored at FSR2, length stored in W
+    movlw   10
+    movwf   Keypad_counter, A
+Keypad_Delay_Loop:
+    decfsz  Keypad_counter, A
+    bra	    Keypad_Delay_Loop
     return
 
-UART_Transmit_Byte:	    ; Transmits byte stored in W
-    btfss   TX1IF	    ; TX1IF is set when TXREG1 is empty
-    bra	    UART_Transmit_Byte
-    movwf   TXREG1, A
-    return
+;UART_Transmit_Byte:	    ; Transmits byte stored in W
+;    btfss   TX1IF	    ; TX1IF is set when TXREG1 is empty
+;    bra	    UART_Transmit_Byte
+;    movwf   TXREG1, A
+;    return
 
 
