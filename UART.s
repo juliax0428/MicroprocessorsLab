@@ -24,6 +24,7 @@ UART_Loop_message:
     movf    POSTINC2, W, A
     call    UART_Transmit_Byte
     decfsz  UART_counter, A
+    
     bra	    UART_Loop_message
     return
 
@@ -32,5 +33,4 @@ UART_Transmit_Byte:	    ; Transmits byte stored in W
     bra	    UART_Transmit_Byte
     movwf   TXREG1, A
     return
-
-end
+    
