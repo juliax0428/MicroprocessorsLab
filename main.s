@@ -1,9 +1,9 @@
 #include <xc.inc>
 
 extrn	Keypad_Setup, Keypad_Read; external subroutines
-extrn	LCD_Setup, LCD_Write_Message
+extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex
 extrn	UART_Setup, UART_Transmit_Message
-extrn	ADC_Setup, ADC_Read 
+extrn	ADC_Setup, ADC_Read, ADC_hex2dec
     
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -31,6 +31,7 @@ setup:	bcf	CFGS	; point to Flash program memory
 	call	LCD_Setup	; setup UART
 	call	UART_Setup
 	call	Keypad_Setup	; setup Keypad
+	call	ADC_Setup
 	goto	start
 	
 	; ******* Main programme ****************************************
@@ -50,7 +51,6 @@ loop:
 	decfsz	counter, A		; count down to zero
 	bra	loop		; keep going until finished
 		
-
 	lfsr	2, myArray + 6
 	movwf	INDF2, A
 	call	Keypad_Read
@@ -65,6 +65,15 @@ loop:
 
 	goto	start		; goto current line in code
 
+ADC_loop:
+	call	ADC_Read
+	call	ADC_hex2dec
+	movf	ADRESH, W,A
+	call	LCD_Write_Hex
+	movf	ADRESL, W, A
+	call	LCD_Write_Hex
+	goto	ADC_loop
+	
 	; a delay subroutine if you need one, times around loop in delay_count
 delay:	
 	decfsz	delay_count, A	; decrement until zero
