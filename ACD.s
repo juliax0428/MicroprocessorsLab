@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  ADC_Setup, ADC_Read    
+global  ADC_Setup, ADC_Read,ADC_hex2dec
     
 psect	udata_acs   ; reserve data space in access ram
 ARG1L: ds    1	    ; reserve 1 byte for ARG1 Low
@@ -100,6 +100,8 @@ ADC_hex2dec:
 	
 	MOVLW   0x03
 	MOVWF   Counter, A  ; Store loop counter
+	
+	call	ADC_Mult_Loop
 	
 ADC_Mult_Loop:
 	MOVLW   0x0A        ; Load 0x0A for the next multiplication
