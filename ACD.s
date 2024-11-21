@@ -6,13 +6,16 @@ psect	udata_acs   ; reserve data space in access ram
 ARG1L: ds    1	    ; reserve 1 byte for ARG1 Low
 ARG1H: ds    1      ; reserve 1 byte for ARG1 High
 ARG1:  ds    1
+    
 ARG2L: ds    1
 ARG2M: ds    1
 ARG2H: ds    1
+    
 RES0:  ds    1
 RES1:  ds    1
 RES2:  ds    1
 RES3:  ds    1
+    
 MSB:   ds    1	    ; Researve 1 byte for Most Significant Byte
 Counter: ds  1	    ; Researve 1 byte for counter
 
