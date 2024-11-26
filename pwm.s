@@ -1,0 +1,25 @@
+
+;if RD7 =1, DC motor with 25%duty cycle
+
+BCF TRISB, RB0
+BSF TRISD, RD7
+BCF PORTB, RB0 ; turn off motor
+    
+CHK: 
+    BTFSS PORTD, RD7
+    BRA PWM50
+    BSF PORTB, RB0
+    CALL DELAY
+    BCF PORTB, RB0
+    CALL DELAY
+    CALL DELAY
+    CALL DELAY
+    BRA CHK
+PWM50:
+    BSF PORTB, RB0
+    CALL DELAY
+    CALL DELAY
+    BCF PORTB, RB0
+    CALL DELAY
+    CALL DELAY
+    BRA CHK    
