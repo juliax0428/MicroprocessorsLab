@@ -1,83 +1,96 @@
 #include <xc.inc>
 
-extrn	Keypad_Setup, Keypad_Read; external subroutines
-extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex
-extrn	UART_Setup, UART_Transmit_Message
-extrn	ADC_Setup, ADC_Read, ADC_hex2dec
-    
-psect	udata_acs   ; reserve data space in access ram
-counter:    ds 1    ; reserve one byte for a counter variable
-delay_count:ds 1    ; reserve one byte for counter in the delay routine
-    
-psect	udata_bank4 ; reserve data anywhere in RAM (here at 0x400)
-myArray:    ds 0x80 ; reserve 128 bytes for message data
+psect	udata_acs
 
-psect	data    
-	; ******* myTable, data in programme memory, and its length *****
-myTable:
-	db	'K','e','y','p','a','d',' ',0x0a
-					; message, plus carriage return
-	myTable_l   EQU  8	; length of data
-	align	2
-    
-psect	code, abs
-	
-rst: 	org 0x0
- 	goto	setup
+psect	data
+R_Input1  EQU 1    ; RC1 -> Right Motor Input 1
+R_Input2  EQU 2    ; RC2 -> Right Motor Input 2
+L_Input1  EQU 3    ; RC3 -> Left Motor Input 1
+L_Input2  EQU 4    ; RC4 -> Left Motor Input 2
 
-	; ******* Programme FLASH read Setup Code ***********************
-setup:	bcf	CFGS	; point to Flash program memory  
-	bsf	EEPGD 	; access Flash program memory
-	call	LCD_Setup	; setup UART
-	call	UART_Setup
-	call	Keypad_Setup	; setup Keypad
-	call	ADC_Setup
-	goto	start
-	
-	; ******* Main programme ****************************************
-start: 	
-	lfsr	0, myArray	; Load FSR0 with address in RAM	
-	movlw	low highword(myTable)	; address of data in PM
-	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
-	movlw	high(myTable)	; address of data in PM
-	movwf	TBLPTRH, A		; load high byte to TBLPTRH
-	movlw	low(myTable)	; address of data in PM
-	movwf	TBLPTRL, A		; load low byte to TBLPTRL
-	movlw	myTable_l	; bytes to read
-	movwf 	counter, A		; our counter register
-loop: 	
-	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
-	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
-	decfsz	counter, A		; count down to zero
-	bra	loop		; keep going until finished
-		
-	lfsr	2, myArray + 6
-	movwf	INDF2, A
-	call	Keypad_Read
-	movlw	myTable_l	; output message to UART
-	lfsr	2, myArray
-	call	UART_Transmit_Message
 
-	movlw	myTable_l	; output message to LCD
-	addlw	0xff		; don't send the final carriage return to LCD
-	lfsr	2, myArray
-	call	LCD_Write_Message
+psect	code
+; Start of code
+org 0x00
+goto start           ; Jump to main program start
 
-	goto	start		; goto current line in code
+; Subroutines
+FORWARD:
+    BSF PORTC, R_Input1, A     ; Set L1 HIGH
+    BCF PORTC,R_Input2, A  ; Set L2 LOW
+    BSF PORTC,L_Input1, A     ; Set L3 HIGH
+    BCF PORTC,L_Input2, A     ; Set L4 LOW
+    CALL Delay    ; Delay for specified time
+    RETURN
 
-ADC_loop:
-	call	ADC_Read
-	call	ADC_hex2dec
-	movf	ADRESH, W,A
-	call	LCD_Write_Hex
-	movf	ADRESL, W, A
-	call	LCD_Write_Hex
-	goto	ADC_loop
-	
-	; a delay subroutine if you need one, times around loop in delay_count
-delay:	
-	decfsz	delay_count, A	; decrement until zero
-	bra	delay
-	return
+REVERSE:
+    BCF PORTC, R_Input1, A     ; Set L1 LOW
+    BSF PORTC, R_Input2, A     ; Set L2 HIGH
+    BCF PORTC, L_Input1, A     ; Set L3 LOW
+    BSF PORTC, L_Input2, A     ; Set L4 HIGH
+    CALL Delay
+    RETURN
 
-	end	rst
+RIGHT:
+    BSF PORTC, R_Input1, A     ; Set L1 HIGH
+    BCF PORTC, R_Input2, A     ; Set L2 LOW
+    BCF PORTC, L_Input1, A     ; Set L3 LOW
+    BSF PORTC, L_Input2, A     ; Set L4 HIGH
+    CALL Delay
+    RETURN
+
+LEFT:
+    BCF PORTC, R_Input1, A     ; Set L1 LOW
+    BSF PORTC, R_Input2, A     ; Set L2 HIGH
+    BSF PORTC, L_Input1, A     ; Set L3 HIGH
+    BCF PORTC, L_Input2, A     ; Set L4 LOW
+    CALL Delay
+    RETURN
+
+Stop:
+    BCF PORTC, R_Input1, A     ; Set all pins LOW
+    BCF PORTC, R_Input2, A
+    BCF PORTC, L_Input1, A
+    BCF PORTC, L_Input2, A
+    CALL Delay
+    RETURN
+
+; Delay Subroutine (approximately 1 ms delay per call)
+Delay:  
+;    MOVLW   0xFF, A                ; Load WREG with delay count (adjust as needed)
+    MOVWF   0x20, A               ; Store in memory (temp register 0x20)
+Delay_Loop:
+    DECFSZ  0x20, F, A             ; Decrement delay counter
+    GOTO    Delay_Loop          ; Repeat until counter reaches zero
+    RETURN                      ; Return from delay
+
+; Main Program
+start:
+
+    CLRF PORTC, A        ; Clear PORTC
+    BSF TRISC, 0, A      ; Set RC0 as output
+    BSF TRISC, 1, A      ; Set RC1 as output
+    BSF TRISC, 2, A    ; Set RC2 as output
+    BSF TRISC, 3, A      ; Set RC3 as output
+
+MAIN_LOOP:
+    ; Execute motion sequences
+    CALL FORWARD
+    call Delay
+    CALL Stop
+    call Delay
+    CALL REVERSE
+    call Delay
+    CALL Stop
+    call Delay
+    CALL LEFT
+    call Delay
+    CALL Stop
+    call Delay
+    CALL RIGHT	
+    call Delay
+    CALL Stop
+    call Delay
+    GOTO MAIN_LOOP   ; Repeat forever
+
+END 
