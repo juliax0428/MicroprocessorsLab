@@ -1,5 +1,11 @@
 #include <xc.inc>
-global FORWARD, REVERSE, RIGHT, LEFT, Stop
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; RC1=input_1, RC2=Input_2, RC3=input_3, RC4=Input_4			;
+; Motor driver = L293D							;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
+global FORWARD, REVERSE, RIGHT, LEFT, Stop, motor_setup, motor_test
 
 psect	udata_acs
 
@@ -10,12 +16,9 @@ L_Input1  EQU 3    ; RC3 -> Left Motor Input 1
 L_Input2  EQU 4    ; RC4 -> Left Motor Input 2
 
 
-psect	code
-; Start of code
-org 0x00
-goto start           ; Jump to main program start
+psect	motors_code, class=CODE
 
-; Subroutines
+
 FORWARD:
     BSF PORTC, R_Input1, A     ; Set L1 HIGH
     BCF PORTC,R_Input2, A  ; Set L2 LOW
@@ -66,31 +69,30 @@ Delay_Loop:
     RETURN                      ; Return from delay
 
 ; Main Program
-start:
-    ; Setup
+motor_setup:
     CLRF PORTC, A        ; Clear PORTC
     BSF TRISC, 0, A      ; Set RC0 as output
     BSF TRISC, 1, A      ; Set RC1 as output
     BSF TRISC, 2, A    ; Set RC2 as output
     BSF TRISC, 3, A      ; Set RC3 as output
 
-MAIN_LOOP:
+motor_test:
     ; Execute motion sequences
-    CALL FORWARD
+    call FORWARD
     call Delay
-    CALL Stop
+    call Stop
     call Delay
-    CALL REVERSE
+    call REVERSE
     call Delay
-    CALL Stop
+    call Stop
     call Delay
-    CALL LEFT
+    call LEFT
     call Delay
-    CALL Stop
+    call Stop
     call Delay
-    CALL RIGHT	
+    call RIGHT	
     call Delay
-    CALL Stop
+    call Stop
     call Delay
     GOTO $    ; Repeat forever
 
