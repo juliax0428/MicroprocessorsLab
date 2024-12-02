@@ -5,7 +5,7 @@
 ; Motor driver = L293D							;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
-global FORWARD, REVERSE, RIGHT, LEFT, Stop, motor_setup, motor_test
+global Forward, Backward, Right, Left, Stop, motor_setup, motor_test
 
 psect	udata_acs
 
@@ -19,54 +19,54 @@ L_Input2  EQU 4    ; RC4 -> Left Motor Input 2
 psect	motors_code, class=CODE
 
 
-FORWARD:
+Forward:
     BSF PORTC, R_Input1, A     ; Set L1 HIGH
     BCF PORTC,R_Input2, A  ; Set L2 LOW
     BSF PORTC,L_Input1, A     ; Set L3 HIGH
     BCF PORTC,L_Input2, A     ; Set L4 LOW
-    CALL Delay    ; Delay for specified time
-    RETURN
+    call Delay			; Delay for specified time
+    return
 
-REVERSE:
+Reverse:
     BCF PORTC, R_Input1, A     ; Set L1 LOW
     BSF PORTC, R_Input2, A     ; Set L2 HIGH
     BCF PORTC, L_Input1, A     ; Set L3 LOW
     BSF PORTC, L_Input2, A     ; Set L4 HIGH
-    CALL Delay
-    RETURN
+    call Delay			; Delay for specified time
+    return
 
-RIGHT:
+Right:
     BSF PORTC, R_Input1, A     ; Set L1 HIGH
     BCF PORTC, R_Input2, A     ; Set L2 LOW
     BCF PORTC, L_Input1, A     ; Set L3 LOW
     BSF PORTC, L_Input2, A     ; Set L4 HIGH
-    CALL Delay
-    RETURN
+    call Delay			; Delay for specified time
+    return
 
-LEFT:
+Left:
     BCF PORTC, R_Input1, A     ; Set L1 LOW
     BSF PORTC, R_Input2, A     ; Set L2 HIGH
     BSF PORTC, L_Input1, A     ; Set L3 HIGH
     BCF PORTC, L_Input2, A     ; Set L4 LOW
-    CALL Delay
-    RETURN
+    call Delay			; Delay for specified time
+    return
 
 Stop:
     BCF PORTC, R_Input1, A     ; Set all pins LOW
     BCF PORTC, R_Input2, A
     BCF PORTC, L_Input1, A
     BCF PORTC, L_Input2, A
-    CALL Delay
-    RETURN
+    call Delay			; Delay for specified time
+    return
 
 ; Delay Subroutine (approximately 1 ms delay per call)
 Delay:  
     MOVLW   0xFF                ; Load WREG with delay count (adjust as needed)
     MOVWF   0x20, A                ; Store in memory (temp register 0x20)
 Delay_Loop:
-    DECFSZ  0x20, F, A             ; Decrement delay counter
-    GOTO    Delay_Loop          ; Repeat until counter reaches zero
-    RETURN                      ; Return from delay
+    decfsz  0x20, F, A             ; Decrement delay counter
+    goto    Delay_Loop          ; Repeat until counter reaches zero
+    return                      ; Return from delay
 
 ; Main Program
 motor_setup:
@@ -78,19 +78,19 @@ motor_setup:
 
 motor_test:
     ; Execute motion sequences
-    call FORWARD
+    call Foward
     call Delay
     call Stop
     call Delay
-    call REVERSE
+    call Backward
     call Delay
     call Stop
     call Delay
-    call LEFT
+    call Left
     call Delay
     call Stop
     call Delay
-    call RIGHT	
+    call Right
     call Delay
     call Stop
     call Delay
