@@ -1,9 +1,9 @@
 #include <xc.inc>
     
     
-extrn	CCP1_count
-extrn	motor_setup, Forward, Backward, Turn_left, Turn_right,Stop, Standby, motor_test
-    
+extrn	CCP_Echo_Capture
+extrn	motor_setup, Forward, Backward, Left, Right,Stop, Stop, motor_test
+extrn	safety_dist   
 
 global	sensor_setup, sensor_send_signal, sensor_distance
 
@@ -31,15 +31,7 @@ sensor_send_signal:
     
 sensor_distance:
     movf	safety_dist, w, A
-    cpfsgt	CCP1_count		    ; compare ccp1_count with safety distance
+    cpfsgt	CCP_Echo_Capture, A		    ; compare ccp1_count with safety distance
     return				    ; Z flage is set if distance >= safety_dist
     
-stop_r:
-    call	Standby			    ;
-    return
- 
-run_r:
-    call	motor_test
-    return
-
 end
