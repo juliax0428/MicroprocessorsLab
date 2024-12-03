@@ -27,7 +27,7 @@ Forward:
     call Delay			; Delay for specified time
     return
 
-Reverse:
+Backward:
     BCF PORTC, R_Input1, A     ; Set L1 LOW
     BSF PORTC, R_Input2, A     ; Set L2 HIGH
     BCF PORTC, L_Input1, A     ; Set L3 LOW
@@ -71,14 +71,14 @@ Delay_Loop:
 ; Main Program
 motor_setup:
     CLRF PORTC, A        ; Clear PORTC
-    BSF TRISC, 0, A      ; Set RC0 as output
-    BSF TRISC, 1, A      ; Set RC1 as output
-    BSF TRISC, 2, A    ; Set RC2 as output
-    BSF TRISC, 3, A      ; Set RC3 as output
+    BCF TRISC, 1, A      ; Set RC0 as output
+    BCF TRISC, 2, A      ; Set RC1 as output
+    BCF TRISC, 3, A    ; Set RC2 as output
+    BCF TRISC, 4, A      ; Set RC3 as output
 
 motor_test:
     ; Execute motion sequences
-    call Foward
+    call Forward
     call Delay
     call Stop
     call Delay
@@ -94,6 +94,6 @@ motor_test:
     call Delay
     call Stop
     call Delay
-    GOTO $    ; Repeat forever
+    GOTO motor_test    ; Repeat forever
 
 END 
