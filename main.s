@@ -1,16 +1,19 @@
 #include <xc.inc>
 
-extrn	sensor_setup, sensor_send_signal, sensor_check_distance,
-entrn	motor_setup, Forward, Backward, Left, Right, Stop, motor_test
-extrn	T1_Setup, CCP_setup
+extrn	sensor_setup, sensor_send_signal, sensor_distance
+extrn	motor_setup, Forward, Backward, Left, Right, Stop, motor_test
+extrn	T1_setup, CCP_setup, CCP_reset
 
+global	safety_dist
+    
 psect	udata_acs
 safety_dist:	ds 1			; Reserve 1 bit for safety distance
-    
-psect code
+
+psect code, abs
  
-org 0x0
-goto setup
+rst:
+    org 0x0
+    goto setup
 
  
 setup:
@@ -29,7 +32,7 @@ main_loop:
     call	CCP_setup		    ; Re-enable CCP and Timer
 
     call	sensor_distance		    ; Check distance
-    btfss	STATUS, Z		    ; Check if Z flag is set (safe distance)
+    btfss	STATUS, 2, A		    ; Check if Z flag is set (safe distance), status register bit 2 is z = zero bit. 
 					    ; if Z=0(distance<safety distance), jumps to emergency_stop
     goto	emergency_stop
 
@@ -43,4 +46,4 @@ continue_vehicle:
     call	motor_test
     goto	main_loop
 
-end
+end rst
