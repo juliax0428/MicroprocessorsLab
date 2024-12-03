@@ -36,7 +36,7 @@ T1_setup:
     movwf	T1CON, A		    
     return
 
-CCP_Interrupt:				    ;Interrupt routine
+CCP_Interrupt:		///////////		    ;Interrupt routine
     ;bcf	PIR1, 0, A		    ;Clear Timer 1 interrupt flag
     btfsc	PIR1, 2, A		    ;Check if CCP1 interrupt
     goto	CCP_Echo_Capture
