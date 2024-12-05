@@ -1,8 +1,8 @@
 #include <xc.inc>
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; RA0=input_1, RD2=Input_2, RG3=input_3, RB4=Input_4			              ;
-; Motor driver = TC78H651AFNG                                						;
+; RA0=input_1, RD2=Input_2, RG3=input_3, RB4=Input_4			;
+; Motor driver = TC78H651AFNG						;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
 global Forward, Backward, Right, Left, Stop, motor_setup, motor_test
