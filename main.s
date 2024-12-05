@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-extrn	sensor_setup, sensor_send_signal, sensor_distance
+extrn	sensor_setup, sensor_trigger, sensor_distance
 extrn	motor_setup, Forward, Backward, Left, Right, Stop, motor_test
 extrn	T1_setup, CCP_setup, CCP_reset
 
@@ -21,13 +21,12 @@ setup:
     call sensor_setup			    ; Initialize sensor setup
     call CCP_setup			    ; Initialize CCP module
     call T1_setup
-    
-start:    
-    movlw	0x0F			    ;Setup the safety distance as 0x0F = 15cm
+     
+    movlw	0x14			    ;Setup the safety distance10cm
     movwf	safety_dist, A
     
 main_loop:
-    call	sensor_send_signal	    ; Send ultrasonic pulse
+    call	sensor_trigger		    ; Send ultrasonic pulse
     call	CCP_reset		    ; Reset CCP and Timer
     call	CCP_setup		    ; Re-enable CCP and Timer
 
@@ -41,7 +40,7 @@ main_loop:
     
 emergency_stop:
     call	Stop			    ; Stop the vehicle
-
+    
 continue_vehicle:
     call	motor_test
     goto	main_loop
