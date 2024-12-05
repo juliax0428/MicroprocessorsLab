@@ -1,23 +1,19 @@
 #include <xc.inc>
 
 global  T1_setup, CCP_setup, CCP_Interrupt, CCP_reset, CCP_Echo_Capture
+global	Echo_Time_H, Echo_Time_L
 
 psect udata_acs
 Echo_Time_H:	    ds 1
 Echo_Time_L:	    ds 1
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;1. Measure time intervals using CCP module and timer1				    ;
-;2. Use Interrupts to captre and store time intervals when specific events occur    ;   
-;3. Rountine									    ;
-;   - Initialize ccp module (CCP_Setup)						    ;
-;   - Handle CCP interrupts (CCP_Int)						    ;
-;   - Reset or disable the ccp module (CCP_reset)				    ;
+; Setup and Initialization for Timer 1 and CCP module.				    ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 psect	ccp_code,class=CODE
 
 CCP_setup:
-    bsf		TRISC, PORTC_RC2_POSN, A    ;RC2=CCP1 as input
+    bsf		TRISF, 7, A		    ;RF7=CCP1 as input
     movlw	00000100B		    ;Interrupt every falling edge edge
     movwf	ECCP1CON, A
     bsf		PIE1, 2, A		    ;Enable CCP1 interrupt
