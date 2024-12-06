@@ -8,13 +8,18 @@ counter_h:  ds 1	    ; reserve one byte for variables counter_h
 counter_l:  ds 1	    ; reserve one byte for variables counter_l
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Code for a delay routine for approximately 1 second.			;
+;Code for a delay routine for approximately 1 second.	
+; by changing the delay_ms, the duration between each instruction will change  
+; 
+;   
+;    
+;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 psect delay_code, class=CODE
 
 delay:
-    movlw	1000		    ; move 1000 into W
+    movlw	255		    ; move 1000 into W 
     movwf	delay_ms, A	    ; delay for 1000*1ms = 1s
 delay_loop:
     movlw	250		    ; move 250 into w
