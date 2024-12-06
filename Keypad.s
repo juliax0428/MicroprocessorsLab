@@ -1,143 +1,127 @@
 #include <xc.inc>
-    
+extrn	Forward, Backward, Left, Right, Stop
 global  Keypad_Setup, Keypad_Read
 
 psect	udata_acs   ; reserve data space in access ram
 Keypad_counter: ds    1	    ; reserve 1 byte for variable UART_counter
 Keypad_Value: ds 1
-Keypad_Value_Row: ds  1
-Keypad_Value_Col: ds  1
     
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Keypad Input Pins:								;
+;	Rows:RJ7, RJ6, RJ4, RB5,						;
+;	Columns: RB4, RJ2, RJ3, RJ0						;
+; Read the Keypad Input:							;
+;	Forward = '2', Backward = '8', Left = '4', Right = '6'			;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
 psect	Keypad_code,class=CODE
 Keypad_Setup:
     banksel	PADCFG1
     bsf		REPU
-    clrf	LATE, A		; Write 0s to the LATE
-    clrf	TRISD, A
+    clrf	LATB, A            
+    clrf	LATJ, A         
+    bcf		LATB, 5, A		; Setup PortB 5 as output
+    bcf		LATB, 4, A		; Setup PortB 4 as output 
     return
     
 Keypad_Read:
+    clrf	Keypad_Value, A
     call	Keypad_Setup_1
     call	Keypad_Read_Row
     call	Keypad_Setup_2
     call	Keypad_Read_Col
-    movf	Keypad_Value_Row, W, A
-    iorwf	Keypad_Value_Col, W, A
-    movwf	PORTD, A
-    bra		Keypad_Compare_1
+    bra		Keypad_Compare_2
     return
     
     
-Keypad_Setup_1:
-    movlw	0x0F		;Set TRISE to 0x0F (0-3 as input, 4-7 as output)
-    movwf	TRISE, A
+Keypad_Setup_1:			; 0x0F 
+    bcf TRISJ, 7, A		; RJ7 as output
+    bcf TRISJ, 6, A		; RJ6 as output
+    bcf	TRISJ, 4, A		; RJ4 as output
+    bcf TRISB, 5, A		; RB5 as output
+    bsf TRISB, 4, A		; RB4 as input
+    bsf TRISJ, 2, A		; RJ2 as input
+    bsf TRISJ, 3, A		; RJ3 as input
+    bsf	TRISJ, 0, A		; RJ0 as input
     call	Keypad_Delay	; wait 10ms for Keypad output pins voltage to settle
     return
     
-Keypad_Setup_2:
-    movlw	0xF0		;Set TRISE to 0xF0 (0-3 as output, 4-7 as input)
-    movwf	TRISE, A
-    movlw	10
+Keypad_Setup_2:			;0xF0
+    bsf TRISJ, 7, A		; RJ7 as input
+    bsf TRISJ, 6, A		; RJ6 as input
+    bsf	TRISJ, 4, A		; RJ4 as input
+    bsf TRISB, 5, A		; RB5 as input
+    bcf TRISB, 4, A		; RB4 as output
+    bcf TRISJ, 2, A		; RJ2 as output
+    bcf TRISJ, 3, A		; RJ3 as output
+    bcf	TRISJ, 0, A		; RJ0 as output
     call	Keypad_Delay	; wait 10ms for Keypad output pins voltage to settle
     return
     
 Keypad_Read_Row:
-	movf	PORTE, W, A	; Read PORTE to determine the logic levels on PORTE 0-3
-	movwf	Keypad_Value_Row, A
-	return
+    btfsc PORTJ, 7, A          ;
+    bsf Keypad_Value, 0, A     ; Set bit 0 if is high
+
+    btfsc PORTJ, 6, A          ; Check 
+    bsf Keypad_Value, 1, A     ; Set bit 1 if is high
+
+    btfsc PORTJ, 4, A          ; Check RJ4
+    bsf Keypad_Value, 2, A     ; Set bit 2 if RJ4 is high
+
+    btfsc PORTB, 5, A          ; Check RB5
+    bsf Keypad_Value, 3, A     ; Set bit 3 if RB5 is high
+    return
 
 Keypad_Read_Col:
-	movf	PORTE, W, A	; Read PORTE to determine the logic levels on PORTE 4-7
-	movwf	Keypad_Value_Col, A
-	return
-	
-Keypad_Compare_1:
-	movlw	11100111B		; 1: 1110 0111
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_2
-	retlw	'1'
+    btfsc PORTB, 4, A          ; Check RB4
+    bsf Keypad_Value, 4, A     ; Set bit 4 if RB4 is high
+
+    btfsc PORTJ, 2, A          ; Check RJ2
+    bsf Keypad_Value, 5, A     ; Set bit 5 if RJ2 is high
+
+    btfsc PORTJ, 3, A          ; Check RJ3
+    bsf Keypad_Value, 6, A     ; Set bit 6 if RJ3 is high
+    
+    btfsc PORTJ, 0, A          ; Check RJ0
+    bsf Keypad_Value, 7, A     ; Set bit 7 if RJ0 is high
+    return
+  
+
 Keypad_Compare_2:
 	movlw	11101011B		;2: 1110 1011
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_3
-	retlw	'2'
-Keypad_Compare_3:
-	movlw	11101101B		;3: 1110 1101
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_F
-	retlw	'3'
-Keypad_Compare_F:
-	movlw	11101110B		;F: 1110 1110
-	cpfseq	PORTD, A
+	cpfseq	Keypad_Value, A
 	bra	Keypad_Compare_4
-	retlw	'F'
-    
+	;retlw	'2'
+	call	Forward
+	return
+
 Keypad_Compare_4:
 	movlw	11010111B		;4: 1101 0111
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_5
-	retlw	'4'
-Keypad_Compare_5:
-	movlw	11101011B		;5: 1101 1011
-	cpfseq	PORTD, A
+	cpfseq	Keypad_Value, A
 	bra	Keypad_Compare_6
-	retlw	'5'
+	;retlw	'4'
+	call	Left
+	return
+
 Keypad_Compare_6:
 	movlw	11011101B		;6: 1101 1101
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_E
-	retlw	'6'
-Keypad_Compare_E:
-	movlw	11011110B		;E: 1101 1110
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_7
-	retlw	'E'
-    
- Keypad_Compare_7:
-	movlw	10110111B		;7:
-	cpfseq	PORTD, A
+	cpfseq	Keypad_Value, A
 	bra	Keypad_Compare_8
-	retlw	'7'
+	;retlw	'6'
+	call	Right
+	return
+
 Keypad_Compare_8:
 	movlw	10111011B		;8: 1011 1011
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_9
-	retlw	'8'
-Keypad_Compare_9:
-	movlw	10111101B		;9: 1011 1101
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_D
-	retlw	'9'
-Keypad_Compare_D:
-	movlw	10111110B		;D: 1011 1110
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_A
-	retlw	'D'
-
-Keypad_Compare_A:
-	movlw	01110111B		;A: 0111 0111
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_0
-	retlw	'A'
-Keypad_Compare_0:
-	movlw	01111011B		;0: 1110 1011
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_B
-	retlw	'0'
-Keypad_Compare_B:
-	movlw	01111101B		;B: 0111 1101
-	cpfseq	PORTD, A
-	bra	Keypad_Compare_C
-	retlw	'B'
-Keypad_Compare_C:
-	movlw	01111110B		;F: 0111 1110
-	cpfseq	PORTD, A
+	cpfseq	Keypad_Value, A
 	bra	Keypad_Compare_error
-	retlw	'C'
+	;retlw	'8'
+	call	Backward
+	return
 
 Keypad_Compare_error:
-	retlw	0xff	
+	call	Stop
+	return
 	
 Keypad_Delay:	    ; Message stored at FSR2, length stored in W
     movlw   10
