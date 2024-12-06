@@ -18,18 +18,18 @@ rst:
  
 setup:
     call motor_setup			    ; Initialize motor setup
-    call sensor_setup			    ; Initialize sensor setup
-    call CCP_setup			    ; Initialize CCP module
-    call T1_setup
+    ;call sensor_setup			    ; Initialize sensor setup
+    ;call CCP_setup			    ; Initialize CCP module
+    ;call T1_setup
      
-    movlw	0x14			    ;Setup the safety distance10cm
-    movwf	safety_dist, A
+    ;movlw	0x14			    ;Setup the safety distance10cm
+    ;movwf	safety_dist, A
     
 main_loop:
+    call	motor_test
     call	sensor_trigger		    ; Send ultrasonic pulse
     call	CCP_reset		    ; Reset CCP and Timer
     call	CCP_setup		    ; Re-enable CCP and Timer
-
     call	sensor_distance		    ; Check distance
     btfss	STATUS, 2, A		    ; Check if Z flag is set (safe distance), status register bit 2 is z = zero bit. 
 					    ; if Z=0(distance<safety distance), jumps to emergency_stop
