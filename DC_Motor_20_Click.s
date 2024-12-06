@@ -81,23 +81,27 @@ Stop:
     
 
 motor_test:
-    ; Execute motion sequences
-    call Forward
-    call delay
-    call Stop
-    call delay
-    call Backward
-    call delay
-    call Stop
-    call delay
-    call Left
-    call delay
-    call Stop
-    call delay
-    call Right
-    call delay
-    call Stop
-    call delay
-    GOTO motor_test    ; Repeat forever
+    ;Execute motion sequences
+    ;call Forward
+    ;call delay
+    ;call Stop
+    ;call delay
+    
+    ;call Backward
+    ;call delay
+    ;call Stop
+    ;call delay
+    
+    ;call Left
+    ;call delay
+    ;call Stop
+    ;call delay
+    
+    ;call Right
+    ;call delay
+    ;call Stop
+    ;call delay
+    
+    ;GOTO motor_test    ; Repeat forever
 
 end 
