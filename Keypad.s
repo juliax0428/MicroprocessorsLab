@@ -2,9 +2,9 @@
 extrn	Forward, Backward, Left, Right, Stop
 global  Keypad_Setup, Keypad_Read
 
-psect	udata_acs   ; reserve data space in access ram
-Keypad_counter: ds    1	    ; reserve 1 byte for variable UART_counter
-Keypad_Value: ds 1
+psect	udata_acs	    ; reserve data space in access ram
+Keypad_counter:	ds  1	    ; reserve 1 byte for variable UART_counter
+Keypad_Value:	ds  1	    ; Reserve 1 byte for keypad value
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Keypad Input Pins:								;
@@ -16,9 +16,13 @@ Keypad_Value: ds 1
     
 psect	Keypad_code,class=CODE
 Keypad_Setup:
-    banksel	PADCFG1
-    bsf		REPU
-    clrf	LATB, A            
+    ; Select the proper bank where INTCON2 and PORTG reside
+    banksel INTCON2
+    bcf     INTCON2, RBPU		; Clear RBPU to enable PORTB internal pull-ups
+
+    banksel PORTG
+    bcf     PORTG, 5			; Clear RJPU to enable PORTJ internal pull-ups
+
     clrf	LATJ, A         
     bcf		LATB, 5, A		; Setup PortB 5 as output
     bcf		LATB, 4, A		; Setup PortB 4 as output 
