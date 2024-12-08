@@ -1,10 +1,9 @@
 #include <xc.inc>
 
-global  T1_setup, CCP_setup, CCP_Interrupt, CCP_reset, CCP_Echo_Capture
-global	
+global  T1_setup, CCP_setup, CCP_Interrupt, CCP_reset
 
 psect udata_acs
-capture_state:	ds 1			    ; 0 = next capture is rising edge, 1 = next capture is falling edge
+capture_state:	ds 1			    ; 0 = capture rising edge, 1 = capture falling edge
 start_time_H:	ds 1			    ;reserve 1 byte for start time high
 start_time_L:	ds 1			    ;reserve 1 byte for start time low
 end_time_H:	ds 1			    ;reserve 1 byte for end time high
@@ -36,7 +35,7 @@ T1_setup:
     clrf	CCPR1H, A		    ;Clear CCP1 high byte
     clrf	TMR1L, A		    ;Clear Timer 1 low byte
     clrf	TMR1H, A		    ;Clear Timer 1 high byte
-    movlw	01001001B		    ;Enable Timer 1 with prescaler 1:4
+    movlw	01001001B		    ;Enable Timer 1 with prescaler 1:1 using Internal Clock, R/W into 2 8-bit operations
     movwf	T1CON, A		    
     return
 
