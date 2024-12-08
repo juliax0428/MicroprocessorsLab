@@ -7,14 +7,9 @@ delay_ms:   ds 1	    ; reserve one byte for milliseconds variables
 counter_h:  ds 1	    ; reserve one byte for variables counter_h
 counter_l:  ds 1	    ; reserve one byte for variables counter_l
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Code for a delay routine for approximately 1 second.	
-; by changing the delay_ms, the duration between each instruction will change  
-; 
-;   
-;    
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Code for a delay routine for approximately 1 second.				;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 psect delay_code, class=CODE
 
