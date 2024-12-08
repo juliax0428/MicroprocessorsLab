@@ -1,8 +1,8 @@
 #include <xc.inc>
     
     
-extrn	CCP_Echo_Capture,Echo_Time_H, Echo_Time_L, T1_setup, CCP_setup
-extrn	safety_dist   
+extrn	Echo_Time_H, Echo_Time_L
+extrn	safety_dist_h, safety_dist_l
 
 global	sensor_setup, sensor_trigger, sensor_distance
 
@@ -23,41 +23,32 @@ sensor_setup:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Send a short pulse via RE6 to trigger the ultrasonic sensor			;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
 sensor_trigger:
-    bcf		PORTE, 3, A		    ;Trigger is Low
+    bcf		PORTE, 3, A		    ;Ensure Trigger is Low
     call	delay_10us
-    bsf		PORTE, 3, A		    ;Trigger is High
+    bsf		PORTE, 3, A		    ;Trigger is High ~ 10us
     call	delay_10us
-    bcf		PORTE, 3, A		    ;Trigger is Low
-    ;bsf	PORTE, PORTE_RE3_POSN, A    ;RE3 high: send trigger pulse
-    ;nop
-    ;nop
-    ;bcf	PORTE, PORTE_RE3_POSN, A    ;RE3 low: end trigger pulse
-    ;bsf	TRISE, PORTE_RE3_POSN, A    ;RE3 input
-    retfie
+    bcf		PORTE, 3, A		    ;Trigger is Low again
+    return
 
-sensor_distance:
-    ; Check high byte of Echo_Time
-    movf    Echo_Time_H, W, A          ; Load high byte of Timer1 value
-    iorwf   Echo_Time_H, W, A          ; Check if high byte is non-zero
-    btfsc   STATUS, 2, A               ; Skip if Z is set (Echo_Time_H == 0)
-    goto    Distance_Unsafe            ; Unsafe if Echo_Time_H > 0
-
-    ; Compare low byte of Echo_Time with safety_dist
-    movf    Echo_Time_L, W, A          ; Load low byte of Timer1 value
-    subwf   safety_dist, W, A          ; Subtract safety_dist from Echo_Time_L
-    btfsc   STATUS, 0, A                 ; Check carry bit (safety_dist >= Echo_Time_L)
-    goto    Distance_Safe              ; Safe if safety distance >= Echo_Time_L
-
+compare_distance:
+    ; Compare high byte of Echo_Time with safety_dist_h
+    movf	Echo_Time_H, W, A	    ; Load high byte of measured distance
+    cpfslt	safety_dist_h, W, A	    ; Compare safety_dist_h with Echo_Time_H
+    goto	Distance_Safe		    ; Safe if safety_dist_h >= Echo_Time_H
+    goto	Distance_Unsafe
+    
 Distance_Unsafe:
-    bcf    STATUS, 2, A			; Clear Z flag (unsafe)
+    call	Stop
+    ;call	buzzer
     return
 
 Distance_Safe:
-    bsf     STATUS, 2, A		; Set Z flag (safe)
     return
 
+
 delay_10us:
-    nop					; Adjust based on clock speed, usually ~4 cycles per NOP
+    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
     RETURN
 end
