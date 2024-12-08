@@ -8,8 +8,9 @@ extrn	Keypad_Setup, Keypad_Read
 global	safety_dist
     
 psect	udata_acs
-safety_dist:	ds 1			; Reserve 1 bit for safety distance
-key_value:	ds 1			; Reserve 1 bit for keypad value
+safety_dist_h:	ds 1			; Reserve 1 byte for safety distance high
+safety_dist_l:	ds 1			; Reserve 1 byte for safety distance low
+key_value:	ds 1			; Reserve 1 byte for keypad value
     
 psect code, abs
  
@@ -24,28 +25,17 @@ setup:
     ;call CCP_setup			    ; Initialize CCP module
     ;call T1_setup
      
-    ;movlw	0x14			    ;Setup the safety distance10cm
-    ;movwf	safety_dist, A
+    movlw	0x04			    ;Setup the safety distance 10cm
+    movwf	safety_dist_h, A
+    movlw	0x8F
+    movwf	safety_dist_l, A	    
     
 main_loop:
     call	Keypad_Read
-    
-    ;call	motor_test
     ;call	sensor_trigger		    ; Send ultrasonic pulse
     ;call	CCP_reset		    ; Reset CCP and Timer
-    ;call	CCP_setup		    ; Re-enable CCP and Timer
-    ;call	sensor_distance		    ; Check distance
-    ;btfss	STATUS, 2, A		    ; Check if Z flag is set (safe distance), status register bit 2 is z = zero bit. 
-					    ; if Z=0(distance<safety distance), jumps to emergency_stop
-    ;goto	emergency_stop
-
-    ;goto	continue_vehicle
-
-emergency_stop:
-    call	Stop			    ; Stop the vehicle
+    ;call	CCP_Interrupt
+    ;call	compare_distance	    
+    goto	$
     
-continue_vehicle:
-    call	motor_test
-    goto	main_loop
-
 end rst
