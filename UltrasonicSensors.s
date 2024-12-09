@@ -1,10 +1,10 @@
 #include <xc.inc>
     
-    
+extrn	Stop
 extrn	Echo_Time_H, Echo_Time_L
 extrn	safety_dist_h, safety_dist_l
 
-global	sensor_setup, sensor_trigger, sensor_distance
+global	sensor_setup, sensor_trigger, compare_distance
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Setup Sensors and Trigger rountine	                                     ;
@@ -35,7 +35,7 @@ sensor_trigger:
 compare_distance:
     ; Compare high byte of Echo_Time with safety_dist_h
     movf	Echo_Time_H, W, A	    ; Load high byte of measured distance
-    cpfslt	safety_dist_h, W, A	    ; Compare safety_dist_h with Echo_Time_H
+    cpfslt	safety_dist_h, A	    ; Compare safety_dist_h with Echo_Time_H
     goto	Distance_Safe		    ; Safe if safety_dist_h >= Echo_Time_H
     goto	Distance_Unsafe
     
@@ -50,5 +50,8 @@ Distance_Safe:
 
 delay_10us:
     nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
-    RETURN
+    nop
+    nop
+    nop
+    return
 end
