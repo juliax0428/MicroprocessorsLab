@@ -2,7 +2,7 @@
 
 extrn	sensor_setup, sensor_trigger, compare_distance
 extrn	motor_setup, Forward, Backward, Left, Right, Stop, motor_test
-extrn	T1_setup, CCP_setup, CCP_reset, CCP_Interrupt
+;extrn	T1_setup, CCP_setup, CCP_reset, CCP_Interrupt
 extrn	Keypad_Setup, Keypad_Read
 
 global	safety_dist_h, safety_dist_l
@@ -31,12 +31,12 @@ setup:
     movwf	safety_dist_l, A	    
     
 main_loop:
-    ;call	Keypad_Read
-    call	motor_test
-    call	sensor_trigger		    ; Send ultrasonic pulse
-    call	CCP_reset		    ; Reset CCP and Timer
-    call	CCP_Interrupt
-    call	compare_distance	    
+    call	Keypad_Read
+    ;call	motor_test
+    ;call	sensor_trigger		    ; Send ultrasonic pulse
+    ;call	CCP_reset		    ; Reset CCP and Timer
+    ;call	CCP_Interrupt
+    ;call	compare_distance	    
     goto	main_loop
     
 end rst
