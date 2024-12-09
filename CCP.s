@@ -1,6 +1,7 @@
 #include <xc.inc>
 
 global  T1_setup, CCP_setup, CCP_Interrupt, CCP_reset
+global	Echo_Time_H, Echo_Time_L
 
 psect udata_acs
 capture_state:	ds 1			    ; 0 = capture rising edge, 1 = capture falling edge
