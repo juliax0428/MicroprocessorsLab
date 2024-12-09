@@ -19,14 +19,14 @@ psect	udata_acs   ; reserve data space in access ram
 psect	motors_code, class=CODE
 
 motor_setup:
-    clrf LATA, A         ; Clear LAT registers
-    clrf LATD, A
-    clrf LATG, A
-    clrf LATB, A
+    bcf	LATA, 1, A         ; Clear LAT registers
+    bcf	LATD, 0, A
+    bcf	LATG, 0, A
+    bcf	LATB, 2, A
     bcf TRISA, 1, A      ; Set RA1 as output 1
     bcf TRISD, 0, A      ; Set RD2 as output 2
-    bcf TRISG, 0, A      ; Set RG3 as output 3
-    bcf TRISB, 2, A      ; Set RB3 as output 4
+    bcf TRISG, 0, A      ; Set RG0 as output 3
+    bcf TRISB, 2, A      ; Set RB2 as output 4
     return
     
 Forward:
