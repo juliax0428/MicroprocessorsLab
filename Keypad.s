@@ -17,28 +17,30 @@ Keypad_Value:	ds  1	    ; Reserve 1 byte for keypad value
 psect	Keypad_code,class=CODE
 Keypad_Setup:
     ; Select the proper bank where INTCON2 and PORTG reside
-    banksel INTCON2
-    bcf     INTCON2, RBPU		; Clear RBPU to enable PORTB internal pull-ups
+    banksel	INTCON2
+    bcf		RBPU				; Clear RBPU to enable PORTB internal pull-ups
 
-    banksel PORTG
-    bcf     PORTG, 5			; Clear RJPU to enable PORTJ internal pull-ups
+    banksel	PORTG
+    bcf		RJPU				; Clear RJPU to enable PORTJ internal pull-ups
 
     clrf	LATJ, A         
-    bcf		LATB, 5, A		; Setup PortB 5 as output
-    bcf		LATB, 4, A		; Setup PortB 4 as output 
+    bcf		LATB, 5, A			; Setup PortB 5 as output
+    bcf		LATB, 4, A			; Setup PortB 4 as output 
     return
     
 Keypad_Read:
     clrf	Keypad_Value, A
-    call	Keypad_Setup_1
+    movlw	11111111B
+    movwf	Keypad_Value, A
+    call	Keypad_Setup_Row
     call	Keypad_Read_Row
-    call	Keypad_Setup_2
+    call	Keypad_Setup_Col
     call	Keypad_Read_Col
     bra		Keypad_Compare_2
     return
     
     
-Keypad_Setup_1:			; 0x0F 
+Keypad_Setup_Col:		; 0x0F 
     bcf TRISJ, 7, A		; RJ7 as output
     bcf TRISJ, 6, A		; RJ6 as output
     bcf	TRISJ, 4, A		; RJ4 as output
@@ -50,7 +52,7 @@ Keypad_Setup_1:			; 0x0F
     call	Keypad_Delay	; wait 10ms for Keypad output pins voltage to settle
     return
     
-Keypad_Setup_2:			;0xF0
+Keypad_Setup_Row:		;0xF0
     bsf TRISJ, 7, A		; RJ7 as input
     bsf TRISJ, 6, A		; RJ6 as input
     bsf	TRISJ, 4, A		; RJ4 as input
@@ -63,31 +65,31 @@ Keypad_Setup_2:			;0xF0
     return
     
 Keypad_Read_Row:
-    btfsc PORTJ, 7, A          ;
-    bsf Keypad_Value, 0, A     ; Set bit 0 if is high
+    btfss PORTJ, 7, A          ;
+    bcf Keypad_Value, 0, A     ; Set bit 0 if is high
 
-    btfsc PORTJ, 6, A          ; Check 
-    bsf Keypad_Value, 1, A     ; Set bit 1 if is high
+    btfss PORTJ, 6, A          ; Check 
+    bcf Keypad_Value, 1, A     ; Set bit 1 if is high
 
-    btfsc PORTJ, 4, A          ; Check RJ4
-    bsf Keypad_Value, 2, A     ; Set bit 2 if RJ4 is high
+    btfss PORTJ, 4, A          ; Check RJ4
+    bcf Keypad_Value, 2, A     ; Set bit 2 if RJ4 is high
 
-    btfsc PORTB, 5, A          ; Check RB5
-    bsf Keypad_Value, 3, A     ; Set bit 3 if RB5 is high
+    btfss PORTB, 5, A          ; Check RB5
+    bcf Keypad_Value, 3, A     ; Set bit 3 if RB5 is high
     return
 
 Keypad_Read_Col:
-    btfsc PORTB, 4, A          ; Check RB4
-    bsf Keypad_Value, 4, A     ; Set bit 4 if RB4 is high
+    btfss PORTB, 4, A          ; Check RB4
+    bcf Keypad_Value, 4, A     ; Set bit 4 if RB4 is high
 
-    btfsc PORTJ, 2, A          ; Check RJ2
-    bsf Keypad_Value, 5, A     ; Set bit 5 if RJ2 is high
+    btfss PORTJ, 2, A          ; Check RJ2
+    bcf Keypad_Value, 5, A     ; Set bit 5 if RJ2 is high
 
-    btfsc PORTJ, 3, A          ; Check RJ3
-    bsf Keypad_Value, 6, A     ; Set bit 6 if RJ3 is high
+    btfss PORTJ, 3, A          ; Check RJ3
+    bcf Keypad_Value, 6, A     ; Set bit 6 if RJ3 is high
     
-    btfsc PORTJ, 0, A          ; Check RJ0
-    bsf Keypad_Value, 7, A     ; Set bit 7 if RJ0 is high
+    btfss PORTJ, 0, A          ; Check RJ0
+    bcf Keypad_Value, 7, A     ; Set bit 7 if RJ0 is high
     return
   
 
