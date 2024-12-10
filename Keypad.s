@@ -31,8 +31,9 @@ Keypad_Setup:
     return
     
 Keypad_Read:
-    clrf	LATJ, A         
-    clrf	LATB, A
+    clrf	LATJ, A   
+    movlw	11001111B
+    andwf	LATB, F, A
     
     clrf	Keypad_Value_Row, A
     clrf	Keypad_Value_Col, A
