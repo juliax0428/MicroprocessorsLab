@@ -14,27 +14,27 @@ extrn  delay
 global Forward, Backward, Right, Left, Stop, motor_setup, motor_test
 
     
-psect	udata_acs   ; reserve data space in access ram
+psect	udata_acs		; reserve data space in access ram
 
 psect	motors_code, class=CODE
 
 motor_setup:
-    bcf	LATA, 1, A         ; Clear LAT registers
+    bcf	LATA, 1, A		; Clear LAT registers
     bcf	LATD, 0, A
     bcf	LATG, 0, A
     bcf	LATB, 2, A
-    bcf TRISA, 1, A      ; Set RA1 as output 1
-    bcf TRISD, 0, A      ; Set RD2 as output 2
-    bcf TRISG, 0, A      ; Set RG0 as output 3
-    bcf TRISB, 2, A      ; Set RB2 as output 4
+    bcf TRISA, 1, A		; Set RA1 as output 1
+    bcf TRISD, 0, A		; Set RD2 as output 2
+    bcf TRISG, 0, A		; Set RG0 as output 3
+    bcf TRISB, 2, A		; Set RB2 as output 4
     return
     
 Forward:
-    bsf LATA, 1, A      ; Set RA1 as High
-    bcf LATD, 0, A      ; Set RD0 as Low
-    bsf LATG, 0, A      ; Set RG0 as High
-    bcf LATB, 2, A      ; Set RB2 as Low
-    ;call delay		 ; Delay for specified time
+    bsf LATA, 1, A		; Set RA1 as High
+    bcf LATD, 0, A		; Set RD0 as Low
+    bsf LATG, 0, A		; Set RG0 as High
+    bcf LATB, 2, A		; Set RB2 as Low
+    ;call delay			; Delay for specified time
     return
 
 Backward:
@@ -62,7 +62,7 @@ Left:
     return
 
 Stop:
-    bcf LATA, 1, A      ; Set all as Low
+    bcf LATA, 1, A		; Set all as Low
     bcf LATD, 0, A
     bcf LATG, 0, A
     bcf LATB, 2, A 
@@ -91,5 +91,5 @@ motor_test:
     call Stop
     call delay
     
-    ;GOTO motor_test    ; Repeat forever
+    ;goto motor_test		; Repeat forever
 end 
