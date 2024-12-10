@@ -8,16 +8,17 @@ global	sensor_setup, sensor_trigger, compare_distance
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Setup Sensors and Trigger rountine	                                     ;
+;   Trigger: RE3, Echo: RE1						     ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 psect	sensor_code,class=CODE
     
 sensor_setup:
     bcf		TRISE, 3,  A
-    bcf		TRISF, 7, A
-    bsf		TRISE, 3, A		    ; set RE6 as trigger 
-    bsf		TRISF, 7, A		    ; Set RE7 as echo
-    clrf	LATE, A
-    clrf	LATF, A
+    ;bcf		TRISE, 1, A
+    ;bsf		TRISE, 3, A		    ; set RE3 as trigger 
+    bsf		TRISE, 1, A		    ; Set RE1 as echo
+    ;bcf		LATE, 3, A
+    bcf	    	LATE, 1, A
     return          
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,14 +33,15 @@ sensor_trigger:
     bcf		PORTE, 3, A		    ;Trigger is Low again
     return
 
-compare_distance:
-    ; Compare high byte of Echo_Time with safety_dist_h
+compare_distance:			    ; Compare high byte of Echo_Time with safety_dist_h
     movf	Echo_Time_H, W, A	    ; Load high byte of measured distance
     cpfslt	safety_dist_h, A	    ; Compare safety_dist_h with Echo_Time_H
     goto	Distance_Safe		    ; Safe if safety_dist_h >= Echo_Time_H
     goto	Distance_Unsafe
     
 Distance_Unsafe:
+    bsf		PORTE, 4, A
+    
     call	Stop
     ;call	buzzer
     return
