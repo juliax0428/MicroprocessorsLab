@@ -3,12 +3,12 @@ extrn	Forward, Backward, Left, Right, Stop
 extrn	delay
 global  Keypad_Setup, Keypad_Read
 
-psect	udata_acs		    ; reserve data space in access ram
-Keypad_counter:		ds  1	    ; reserve 1 byte for variable UART_counter
+psect	udata_acs		    ; Reserve data space in access ram
+Keypad_counter:		ds  1	    ; Reserve 1 byte for variable UART_counter
 Keypad_Value_Row:	ds  1	    ; Reserve 1 byte for keypad value
-Keypad_Value_Col:	ds  1	    ;Reserve 1 byte for keypad value
-Keypad_Value:		ds  1	    ;Reserve 1 byte for keypad value
-    
+Keypad_Value_Col:	ds  1	    ; Reserve 1 byte for keypad value
+Keypad_Value:		ds  1	    ; Reserve 1 byte for keypad value
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Keypad Input Pins:								;
 ;	Rows:RJ7, RJ6, RJ4, RB5,						;
@@ -134,7 +134,7 @@ Keypad_Compare_8:
     ;retlw	'8'
     call	Backward
     return
-	
+
 Keypad_Compare_null:
     movlw	11111111B
     cpfseq	Keypad_Value, A
