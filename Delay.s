@@ -15,7 +15,7 @@ psect delay_code, class=CODE
 
 delay:
     movlw	255		    ; move 1000 into W 
-    movwf	delay_ms, A	    ; delay for 1000*1ms = 1s
+    movwf	delay_ms, A	    ; delay for 1000*1ms = 250ms
 delay_loop:
     movlw	250		    ; move 250 into w
     call	delay_x4us	    ; delay for 250*4us = 1 ms
