@@ -15,11 +15,13 @@ Echo_Time_L:	ds 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Setup and Initialization for Timer 1 and CCP module.				    ;
+; RE1: Echo									    ;
+; Echo_Time_H = end_time_H - start_time_H	    				    ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 psect	ccp_code,class=CODE
 
 CCP_setup:
-    bsf		TRISF, 7, A		    ;RF7=CCP1 as input
+    bsf		TRISE, 1, A		    ;RF7=CCP1 as input
     movlw	00000100B		    ;Capture on every rising edge
     movwf	ECCP1CON, A
     bsf		PIE1, 2, A		    ;Enable CCP1 interrupt
@@ -36,10 +38,18 @@ T1_setup:
     clrf	CCPR1H, A		    ;Clear CCP1 high byte
     clrf	TMR1L, A		    ;Clear Timer 1 low byte
     clrf	TMR1H, A		    ;Clear Timer 1 high byte
-    movlw	01001001B		    ;Enable Timer 1 with prescaler 1:1 using Internal Clock, R/W into 2 8-bit operations
+    movlw	01001001B		    ;TMR1 ON,  prescaler 1:1, Internal Clock, R/W into 2 8-bit operations
     movwf	T1CON, A		    
     return
-
+    
+CCP_reset:
+    clrf	PIR1, A			    ;Clear all flags
+    clrf	CCPR1L, A		    ;Clear CCP1 count
+    clrf	CCPR1H, A
+    clrf	TMR1L, A
+    clrf	TMR1H, A
+    return
+    
 CCP_Interrupt:				    ;Interrupt routine
     btfsc	PIR1, 2, A		    ;Check if CCP1 interrupt
     goto	CCP_Echo_Capture
@@ -67,12 +77,6 @@ falling_edge:
     movff	Echo_Time_H, end_time_H, A
     movff	Echo_Time_L, end_time_L, A
     
-    goto	pulse_width
-    
-    movlw	00000100B		    ; Capture on every rising edge
-    movwf	ECCP1CON, A
-    bcf		capture_state, 0, A	    ; Waiting for rising edge
-    
     
 pulse_width:				    ; Pulse width = end time - start time
     movf	end_time_L, W, A
@@ -82,16 +86,14 @@ pulse_width:				    ; Pulse width = end time - start time
     movf	end_time_H, W, A
     subwf	start_time_H, W, A	    ; H: end time - start time = w
     movwf	Echo_Time_H, A		    ; store w in echo_time_H
-    return
     
+    movlw	00000100B		    ; Capture on every rising edge
+    movwf	ECCP1CON, A
+    bcf		capture_state, 0, A	    ; Waiting for rising edge
     
-CCP_reset:
-    clrf	PIR1, A			    ;Clear all flags
-    clrf	CCPR1L, A		    ;Clear CCP1 count
-    clrf	CCPR1H, A
-    clrf	TMR1L, A
-    clrf	TMR1H, A
+    call	CCP_reset
+    
     retfie
-end
 
-    
+
+end
