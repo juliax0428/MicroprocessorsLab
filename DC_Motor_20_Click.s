@@ -30,66 +30,66 @@ motor_setup:
     return
     
 Forward:
-    bsf PORTA, 1, A      ; Set RA1 as High
-    bcf PORTD, 0, A      ; Set RD0 as Low
-    bsf PORTG, 0, A      ; Set RG0 as High
-    bcf PORTB, 2, A      ; Set RB2 as Low
-    call delay		 ; Delay for specified time
+    bsf LATA, 1, A      ; Set RA1 as High
+    bcf LATD, 0, A      ; Set RD0 as Low
+    bsf LATG, 0, A      ; Set RG0 as High
+    bcf LATB, 2, A      ; Set RB2 as Low
+    ;call delay		 ; Delay for specified time
     return
 
 Backward:
-    bcf PORTA, 1, A      ; Set RA0 as Low
-    bsf PORTD, 0, A      ; Set RD2 as High
-    bcf PORTG, 0, A      ; Set RG3 as Low
-    bsf PORTB, 2, A      ; Set RB3 as High
-    call delay			; Delay for specified time
+    bcf LATA, 1, A		; Set RA0 as Low
+    bsf LATD, 0, A		; Set RD2 as High
+    bcf LATG, 0, A		; Set RG3 as Low
+    bsf LATB, 2, A		; Set RB3 as High
+    ;call delay			; Delay for specified time
     return
 
 Right:
-    bsf PORTA, 1, A      ; Set RA0 as High
-    bcf PORTD, 0, A      ; Set RD2 as Low
-    bcf PORTG, 0, A      ; Set RG3 as Low
-    bsf PORTB, 2, A      ; Set RB3 as High
-    call delay			; Delay for specified time
+    bsf LATA, 1, A		; Set RA0 as High
+    bcf LATD, 0, A		; Set RD2 as Low
+    bcf LATG, 0, A		; Set RG3 as Low
+    bsf LATB, 2, A		; Set RB3 as High
+    ;call delay			; Delay for specified time
     return
 
 Left:
-    bcf PORTA, 1, A      ; Set RA0 as Low
-    bsf PORTD, 0, A      ; Set RD2 as High
-    bsf PORTG, 0, A      ; Set RG3 as High
-    bcf PORTB, 2, A      ; Set RB3 as Low
-    call delay			; Delay for specified time
+    bcf LATA, 1, A		; Set RA0 as Low
+    bsf LATD, 0, A		; Set RD2 as High
+    bsf LATG, 0, A		; Set RG3 as High
+    bcf LATB, 2, A		; Set RB3 as Low
+    ;call delay			; Delay for specified time
     return
 
 Stop:
-    bcf PORTA, 1, A      ; Set all as Low
-    bcf PORTD, 0, A
-    bcf PORTG, 0, A
-    bcf PORTB, 2, A 
-    call delay			; Delay for specified time
+    bcf LATA, 1, A      ; Set all as Low
+    bcf LATD, 0, A
+    bcf LATG, 0, A
+    bcf LATB, 2, A 
+    ;call delay			; Delay for specified time
     return
 
 motor_test:
     ;Execute motion sequences
     call Forward
-    ;call delay
+    call delay
     call Stop
-    ;call delay
+    call delay
     
     call Backward
-    ;call delay
+    call delay
     call Stop
-    ;call delay
+    call delay
     
     call Left
-    ;call delay
+    call delay
     call Stop
-    ;call delay
+    call delay
     
     call Right
-    ;call delay
+    call delay
     call Stop
-    ;call delay
+    call delay
     
     ;GOTO motor_test    ; Repeat forever
 end 
