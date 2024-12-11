@@ -7,59 +7,56 @@ extrn	safety_dist_h, safety_dist_l
 global	sensor_setup, sensor_trigger, compare_distance, US_measuring
 
 psect udata_acs
-US_measuring:	ds 1	; flag to indicate if measurement in progress
+US_measuring:	ds 1			    ; flag to indicate if measurement in progress
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Setup Sensors and Trigger rountine	                                     ;
-;   Trigger: RE3, Echo: RE1						     ;
+;   Trigger: RE3, Echo: RC2						     ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 psect	sensor_code,class=CODE
     
 sensor_setup:
-    bcf		TRISE, 3,  A			    ; set RE3 as trigger
+    bcf		TRISE, 3,  A		    ; set RE3 as trigger
     ;bcf		TRISE, 1, A
     ;bsf		TRISE, 3, A		     
-    ;bsf		TRISC, 2, A			    ; Set RE1 as echo
+    ;bsf		TRISC, 2, A		
     ;bcf		LATE, 3, A
     ;bcf	    	LATE, 1, A
     clrf	US_measuring, A
     return          
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Send a short pulse via RE3 to trigger the ultrasonic sensor			;
+; Send a short pulse via RE3 to trigger the ultrasonic sensor			;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
 sensor_trigger:
-    btfsc	PORTC, 2, A		    ;Check if Echo is Low
+    btfsc	PORTC, 2, A		    ; Check if Echo is Low
     return
 
-    bcf		PORTE, 3, A		    ;Ensure Trigger is Low
-    movlw	1
+    bcf		PORTE, 3, A		    ; Ensure Trigger is Low
+    movlw	1			    ; Delay for 1 ms
     call	delay
-    bsf		PORTE, 3, A		    ;Trigger is High ~ 10us
+    bsf		PORTE, 3, A		    ; Trigger is High ~ 10us
     call	delay_10us
-    bcf		PORTE, 3, A		    ;Trigger is Low again
-    bsf		US_measuring, 0, A
+    bcf		PORTE, 3, A		    ; Trigger is Low again
+    bsf		US_measuring, 0, A	    ; Set US_measuring <0> = 1
     return
 
-compare_distance:
-    ; Compare (Echo_Time_H:Echo_Time_L) <= (safety_dist_h:safety_dist_l)
+compare_distance:			    ; Compare the High Byte of distance
+    movf	Echo_Time_H, W, A
+    subwf	safety_dist_h, W, A	    ; W = safety_dist_h - Echo_Time_H
+    btfss   	STATUS, 2		    ; Zero bit: If zero skip next. (1 = The result of an arithmetic or logic operation is zero) 
+    btfsc	STATUS, 0		    ; Carry bit: If Echo_Time_H <= safety_dist_h skip next.
+    goto	compare_distance_l
+    goto	Distance_Unsafe		    ; If Echo_Time_H > safety_dist_h, unsafe
     
-    ; First compare the high bytes
-    movf    Echo_Time_H, W, A
-    subwf   safety_dist_h, W, A     ; W = safety_dist_h - Echo_Time_H
-    btfss   STATUS, 2               ; If zero skip next
-    btfsc   STATUS, 0               ; If carry set, Echo_Time_H <= safety_dist_h
-    goto    compare_low
-    goto    Distance_Unsafe         ; If Echo_Time_H > safety_dist_h, unsafe
-    
-compare_low:
+compare_distance_l:
     ; High bytes are equal, compare low bytes
-    movf    Echo_Time_L, W, A
-    subwf   safety_dist_l, W, A     ; W = safety_dist_l - Echo_Time_L
-    btfsc   STATUS, 0               ; If carry set, Echo_Time_L <= safety_dist_l
-    goto    Distance_Safe
-    goto    Distance_Unsafe
+    movf	Echo_Time_L, W, A
+    subwf	safety_dist_l, W, A	    ; W = safety_dist_l - Echo_Time_L
+    btfsc	STATUS, 0		    ; If carry set, Echo_Time_L <= safety_dist_l
+    goto	Distance_Safe
+    goto	Distance_Unsafe
     
     
 Distance_Unsafe:
@@ -72,18 +69,18 @@ Distance_Safe:
 
 delay_10us:
     nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
+    nop					    ; Checked on Osilloscope, the delay is ~ 10us.
     nop
-    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
     nop
-    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
     nop
-    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
     nop
-    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
+    nop	
     nop
-    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
     nop
-    nop					    ; Adjust based on clock speed, usually ~4 cycles per NOP
+    nop
+    nop
+    nop
+    nop
     nop
     nop
     return
