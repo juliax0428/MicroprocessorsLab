@@ -2,6 +2,7 @@
 
 global  T1_setup, CCP_setup, CCP_Interrupt, CCP_reset
 global	Echo_Time_H, Echo_Time_L
+extrn	US_measuring
 
 psect udata_acs
 capture_state:	ds 1			    ; 0 = capture rising edge, 1 = capture falling edge
@@ -9,21 +10,22 @@ start_time_H:	ds 1			    ;reserve 1 byte for start time high
 start_time_L:	ds 1			    ;reserve 1 byte for start time low
 end_time_H:	ds 1			    ;reserve 1 byte for end time high
 end_time_L:	ds 1			    ;reserve 1 byte for end time low
-Echo_Time_H:	ds 1
-Echo_Time_L:	ds 1			    
+Echo_Time_H:	ds 1			    ;reserve 1 byte for Echo time high
+Echo_Time_L:	ds 1			    ;reserve 1 byte for Echo time low
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Setup and Initialization for Timer 1 and CCP module.				    ;
 ; RE1: Echo									    ;
 ; Echo_Time_H = end_time_H - start_time_H	    				    ;
+; Echo_Time_L = end_time_L - start_time_L	    				    ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 psect	ccp_code,class=CODE
 
-CCP_setup:
-    bsf		TRISE, 1, A		    ;RF7=CCP1 as input
-    movlw	00000100B		    ;Capture on every rising edge
-    movwf	ECCP1CON, A
+CCP_setup:				    ;Enhanced Capture/ Compare/ PWM Module
+    bsf		TRISC, 2, A		    ;RE1 = CCP1 as input
+    movlw	00000101B		    ;Capture on every rising edge: 0101
+    movwf	ECCP1CON, A		    ;ECCP1 Control Register
     bsf		PIE1, 2, A		    ;Enable CCP1 interrupt
     
     clrf	capture_state, A	    ; Start with capturing rising edge
@@ -38,7 +40,7 @@ T1_setup:
     clrf	CCPR1H, A		    ;Clear CCP1 high byte
     clrf	TMR1L, A		    ;Clear Timer 1 low byte
     clrf	TMR1H, A		    ;Clear Timer 1 high byte
-    movlw	01001001B		    ;TMR1 ON,  prescaler 1:1, Internal Clock, R/W into 2 8-bit operations
+    movlw	01101001B		    ;TMR1 ON,  prescaler 1:4, Internal Clock, R/W into 2 8-bit operations
     movwf	T1CON, A		    
     return
     
@@ -67,11 +69,12 @@ rising_edge:
     movff	Echo_Time_H, start_time_H, A
     movff	Echo_Time_L, start_time_L, A
     
-    movlw	00000101B		    ;Capture on every falling edge
+    movlw	00000100B		    ;Capture on every falling edge: 0100
     movwf	ECCP1CON,A
     
     bsf		capture_state,0, A	    ; Waiting for falling edge
-    goto	CCP_reset
+    call	CCP_reset
+    retfie
     
 falling_edge:
     movff	Echo_Time_H, end_time_H, A
@@ -87,12 +90,13 @@ pulse_width:				    ; Pulse width = end time - start time
     subwf	start_time_H, W, A	    ; H: end time - start time = w
     movwf	Echo_Time_H, A		    ; store w in echo_time_H
     
-    movlw	00000100B		    ; Capture on every rising edge
+    movlw	00000101B		    ; Capture on every rising edge
     movwf	ECCP1CON, A
     bcf		capture_state, 0, A	    ; Waiting for rising edge
     
     call	CCP_reset
-    
+    bcf		US_measuring, 0, A
+
     retfie
 
 
