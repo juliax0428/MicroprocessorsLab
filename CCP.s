@@ -81,14 +81,17 @@ falling_edge:
     movff	Echo_Time_L, end_time_L, A
     
     
-pulse_width:				    ; Pulse width = end time - start time
-    movf	end_time_L, W, A
-    subwf	start_time_L, W, A	    ; L: end time - start time = w
-    movwf	Echo_Time_L, A		    ; store w in echo_time_L
-    
-    movf	end_time_H, W, A
-    subwf	start_time_H, W, A	    ; H: end time - start time = w
-    movwf	Echo_Time_H, A		    ; store w in echo_time_H
+pulse_width:
+    ; Compute Echo_Time = end_time - start_time (16-bit)
+    ; Low byte subtraction
+    movf    start_time_L, W, A     ; W = start_time_L
+    subwf   end_time_L, W, A       ; W = end_time_L - start_time_L
+    movwf   Echo_Time_L, A         ; Echo_Time_L = end_time_L - start_time_L
+
+    ; High byte subtraction with borrow
+    movf    start_time_H, W, A     ; W = start_time_H
+    subwfb  end_time_H, W, A       ; W = end_time_H - start_time_H - borrow
+    movwf   Echo_Time_H, A         ; Echo_Time_H = end_time_H - start_time_H - borrow
     
     movlw	00000101B		    ; Capture on every rising edge
     movwf	ECCP1CON, A
