@@ -128,7 +128,7 @@ Keypad_Compare_6:
     return
 
 Keypad_Compare_8:
-    movlw	10111101B			    ;8: 10111101B
+     movlw	10111101B			    ;8: 10111101B
     cpfseq	Keypad_Value, A
     bra		Keypad_Compare_null
     ;retlw	'8'
