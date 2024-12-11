@@ -1,6 +1,6 @@
 #include <xc.inc>
     
-extrn	Stop, delay
+extrn	Stop, delay, Backward
 extrn	Echo_Time_H, Echo_Time_L
 extrn	safety_dist_h, safety_dist_l
 
@@ -30,9 +30,10 @@ sensor_setup:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
 sensor_trigger:
-    btfsc	PORTC, 2, A
+    btfsc	PORTC, 2, A		    ;Check if Echo is Low
     return
-;    bcf		PORTE, 3, A		    ;Ensure Trigger is Low
+
+    bcf		PORTE, 3, A		    ;Ensure Trigger is Low
     movlw	1
     call	delay
     bsf		PORTE, 3, A		    ;Trigger is High ~ 10us
@@ -41,17 +42,28 @@ sensor_trigger:
     bsf		US_measuring, 0, A
     return
 
-compare_distance:			    ; Compare high byte of Echo_Time with safety_dist_h
-    movf	Echo_Time_H, W, A	    ; Load high byte of measured distance
-    cpfslt	safety_dist_h, A	    ; Compare safety_dist_h with Echo_Time_H
-    goto	Distance_Safe		    ; Safe if safety_dist_h >= Echo_Time_H
-    goto	Distance_Unsafe
+compare_distance:
+    ; Compare (Echo_Time_H:Echo_Time_L) <= (safety_dist_h:safety_dist_l)
+    
+    ; First compare the high bytes
+    movf    Echo_Time_H, W, A
+    subwf   safety_dist_h, W, A     ; W = safety_dist_h - Echo_Time_H
+    btfss   STATUS, 2               ; If zero skip next
+    btfsc   STATUS, 0               ; If carry set, Echo_Time_H <= safety_dist_h
+    goto    compare_low
+    goto    Distance_Unsafe         ; If Echo_Time_H > safety_dist_h, unsafe
+    
+compare_low:
+    ; High bytes are equal, compare low bytes
+    movf    Echo_Time_L, W, A
+    subwf   safety_dist_l, W, A     ; W = safety_dist_l - Echo_Time_L
+    btfsc   STATUS, 0               ; If carry set, Echo_Time_L <= safety_dist_l
+    goto    Distance_Safe
+    goto    Distance_Unsafe
+    
     
 Distance_Unsafe:
-    ;bsf		PORTE, 4, A
-    
-    call	Stop
-    ;call	buzzer
+    call	Backward
     return
 
 Distance_Safe:
