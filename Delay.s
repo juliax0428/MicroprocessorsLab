@@ -14,16 +14,16 @@ counter_l:  ds 1	    ; reserve one byte for variables counter_l
 psect delay_code, class=CODE
 
 delay:
-    movlw	255		    ; move 1000 into W 
+    ;movlw	255		    ; delay stored in w 
     movwf	delay_ms, A	    ; delay for 1000*1ms = 250ms
 delay_loop:
-    movlw	250		    ; move 250 into w
-    call	delay_x4us	    ; delay for 250*4us = 1 ms
+    movlw	31		    ; move 250 into w
+    call	delay_x32us	    ; delay for 250*4us = 1 ms
     decfsz	delay_ms, A
     bra		delay_loop
     return
-    
-delay_x4us:
+
+delay_x32us:
     movwf	counter_l, A	    ; now need to multiply by 16
     swapf	counter_l, F, A	    ; swap nibbles
     movlw	0x0f	    
