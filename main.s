@@ -30,9 +30,9 @@ setup:
     call	CCP_setup			    ; Initialize CCP module
     call	T1_setup
      
-    movlw	0x04				    ; Setup the safety distance 10cm
+    movlw	0x00				    ; Setup the safety distance 10cm
     movwf	safety_dist_h, A
-    movlw	0x8F
+    movlw	0x93
     movwf	safety_dist_l, A	    
     
 main_loop:
@@ -41,7 +41,8 @@ main_loop:
     call	Keypad_Read
     ;call	CCP_reset		    ; Reset CCP and Timer
     ;call	CCP_Interrupt		    ; ISR is automatically called when a capture interrupt occurs
-    ;call	compare_distance
+    ;btfss	US_measuring, 0 ,A
+    call	compare_distance
     goto	main_loop
     
 end rst
