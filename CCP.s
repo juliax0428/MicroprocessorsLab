@@ -57,12 +57,11 @@ CCP_Interrupt:				    ;Interrupt routine
     goto	CCP_Echo_Capture
     retfie				    ;Return from interrupt routine
     
-CCP_Echo_Capture:
-    ;store current capture value
+CCP_Echo_Capture:			    ;Store current capture value
     movff	CCPR1H, Echo_Time_H, A	    ;Store high byte of Timer 1 
     movff	CCPR1L, Echo_Time_L, A	    ;Store low byte of Timer 1
     
-    btfsc	capture_state,0, A	    ;if capture_state bit is clear, handle rising edge
+    btfsc	capture_state, 0, A	    ;If capture_state <0> = 0 , skip next
     goto	falling_edge
     
 rising_edge:
@@ -72,7 +71,7 @@ rising_edge:
     movlw	00000100B		    ;Capture on every falling edge: 0100
     movwf	ECCP1CON,A
     
-    bsf		capture_state,0, A	    ; Waiting for falling edge
+    bsf		capture_state, 0, A	    ; Set capture_state <0> = 1
     call	CCP_reset
     retfie
     
@@ -81,24 +80,21 @@ falling_edge:
     movff	Echo_Time_L, end_time_L, A
     
     
-pulse_width:
-    ; Compute Echo_Time = end_time - start_time (16-bit)
-    ; Low byte subtraction
-    movf    start_time_L, W, A     ; W = start_time_L
-    subwf   end_time_L, W, A       ; W = end_time_L - start_time_L
-    movwf   Echo_Time_L, A         ; Echo_Time_L = end_time_L - start_time_L
-
-    ; High byte subtraction with borrow
-    movf    start_time_H, W, A     ; W = start_time_H
-    subwfb  end_time_H, W, A       ; W = end_time_H - start_time_H - borrow
-    movwf   Echo_Time_H, A         ; Echo_Time_H = end_time_H - start_time_H - borrow
+pulse_width:				    ; Compute Echo_Time = end_time - start_time (16-bit)
+    movf	start_time_L, W, A	    ; W = start_time_L
+    subwf	end_time_L, W, A	    ; W = end_time_L - start_time_L
+    movwf	Echo_Time_L, A		    ; Echo_Time_L = end_time_L - start_time_L
+	
+    movf	start_time_H, W, A	    ; W = start_time_H
+    subwfb	end_time_H, W, A	    ; W = end_time_H - start_time_H - borrow
+    movwf	Echo_Time_H, A		    ; Echo_Time_H = end_time_H - start_time_H - borrow
     
     movlw	00000101B		    ; Capture on every rising edge
     movwf	ECCP1CON, A
-    bcf		capture_state, 0, A	    ; Waiting for rising edge
+    bcf		capture_state, 0, A	    ; Clear capture_state <0> = 0
     
     call	CCP_reset
-    bcf		US_measuring, 0, A
+    bcf		US_measuring, 0, A	    ; Clear US_measuring <0> = 0
 
     retfie
 
