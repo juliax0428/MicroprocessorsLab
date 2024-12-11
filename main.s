@@ -18,6 +18,10 @@ psect code, abs
 rst:
     org 0x0
     goto setup
+    
+interrupt:
+    org 0x08
+    goto    CCP_Interrupt
 
 setup:
     call	motor_setup			    ; Initialize motor setup
@@ -32,12 +36,12 @@ setup:
     movwf	safety_dist_l, A	    
     
 main_loop:
-    call	Keypad_Read
     ;call	motor_test
     call	sensor_trigger		    ; Send ultrasonic pulse
+    call	Keypad_Read
     ;call	CCP_reset		    ; Reset CCP and Timer
     ;call	CCP_Interrupt		    ; ISR is automatically called when a capture interrupt occurs
-    call	compare_distance
+    ;call	compare_distance
     goto	main_loop
     
 end rst
