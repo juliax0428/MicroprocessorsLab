@@ -70,6 +70,7 @@ compare_distance_l:			    ; High bytes are equal, compare low bytes
     
 Distance_Unsafe:
     call	Stop
+    call	Backward
     return
 
 Distance_Safe:
