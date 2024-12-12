@@ -31,7 +31,7 @@ setup:
     call	CCP_setup			    ; Initialize CCP module
     call	T1_setup
      
-    movlw	0x01				    ; Setup the safety distance 10cm: Fosc=8 Mhz, Prescaler 1:4
+    movlw	0x02				    ; Setup the safety distance 10cm: Fosc=8 Mhz, Prescaler 1:4
     movwf	safety_dist_h, A
     movlw	0x26
     movwf	safety_dist_l, A	    
