@@ -52,6 +52,7 @@ compare_distance:			    ; Compare the High Byte of distance
     goto	compare_distance_l
     
     btfsc	STATUS, 0		    ; Carry bit: C = 1 and and Z = 0, safety_dist_h > Echo_Time_h.
+    
     goto	Distance_Unsafe		    ; C = 0, Z= 0
     goto	Distance_Safe
     
