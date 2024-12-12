@@ -2,6 +2,7 @@
     
 extrn	Stop, delay, Backward
 extrn	Echo_Time_H, Echo_Time_L
+extrn	pulse_h, pulse_l
 extrn	safety_dist_h, safety_dist_l
 
 global	sensor_setup, sensor_trigger, compare_distance, US_measuring
@@ -34,8 +35,8 @@ sensor_trigger:
     return
 
     bcf		PORTE, 3, A		    ; Ensure Trigger is Low
-    movlw	1			    ; Delay for 1 ms
-    call	delay
+    ;movlw	1			    ; Delay for 1 ms
+    ;call	delay
     bsf		PORTE, 3, A		    ; Trigger is High ~ 10us
     call	delay_10us
     bcf		PORTE, 3, A		    ; Trigger is Low again
@@ -43,24 +44,31 @@ sensor_trigger:
     return
 
 compare_distance:			    ; Compare the High Byte of distance
-    movf	Echo_Time_H, W, A
-    subwf	safety_dist_h, W, A	    ; W = safety_dist_h - Echo_Time_H
-    btfss   	STATUS, 2		    ; Zero bit: If zero skip next. (1 = The result of an arithmetic or logic operation is zero) 
-    btfsc	STATUS, 0		    ; Carry bit: If Echo_Time_H <= safety_dist_h skip next.
+    movf	pulse_h, W, A
+    ;movf	Echo_Time_H, W, A
+    subwf	safety_dist_h, W, A	    ; W = safety_dist_h - pulse_h
+    
+    btfsc   	STATUS, 2		    ; Zero bit: If zero skip next. (Z=1 safety_dist_h = Echo_Time_H) 
     goto	compare_distance_l
-    goto	Distance_Unsafe		    ; If Echo_Time_H > safety_dist_h, unsafe
     
-compare_distance_l:
-    ; High bytes are equal, compare low bytes
-    movf	Echo_Time_L, W, A
-    subwf	safety_dist_l, W, A	    ; W = safety_dist_l - Echo_Time_L
-    btfsc	STATUS, 0		    ; If carry set, Echo_Time_L <= safety_dist_l
+    btfsc	STATUS, 0		    ; Carry bit: C = 1 and and Z = 0, safety_dist_h > Echo_Time_h.
+    goto	Distance_Unsafe		    ; C = 0, Z= 0
     goto	Distance_Safe
-    goto	Distance_Unsafe
     
+
+    
+compare_distance_l:			    ; High bytes are equal, compare low bytes
+    movf	pulse_l, W, A
+    ;movf	Echo_Time_L, W, A
+    subwf	safety_dist_l, W, A	    ; W = safety_dist_l - pulse_l
+    
+    btfsc	STATUS, 0		    ; If carry set, Echo_Time_L <= safety_dist_l
+    
+    goto	Distance_Unsafe		    ; C=1, No borrow,  safety_dist > pulse, unsafe
+    goto	Distance_Safe		    ; C=0, Borrow occured, safety_dist < pulse, safe
     
 Distance_Unsafe:
-    call	Backward
+    call	Stop
     return
 
 Distance_Safe:
