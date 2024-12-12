@@ -23,7 +23,6 @@ rst:
 interrupt:
     org 0x08
     goto    CCP_Interrupt
-    retfie					    ; not sure if this is correct???
 
 setup:
     call	motor_setup			    ; Initialize motor setup
@@ -32,9 +31,9 @@ setup:
     call	CCP_setup			    ; Initialize CCP module
     call	T1_setup
      
-    movlw	0x00				    ; Setup the safety distance 10cm
+    movlw	0x01				    ; Setup the safety distance 10cm: Fosc=8 Mhz, Prescaler 1:4
     movwf	safety_dist_h, A
-    movlw	0x93
+    movlw	0x26
     movwf	safety_dist_l, A	    
     
 main_loop:
@@ -43,7 +42,7 @@ main_loop:
     call	Keypad_Read
     ;call	CCP_reset			    ; Reset CCP and Timer
     ;call	CCP_Interrupt			    ; ISR is automatically called when a capture interrupt occurs
-    btfss	US_measuring, 0 ,A		    ; If US_measuring<0> = 1, skip next
+    ;btfss	US_measuring, 0 ,A		    ; If US_measuring<0> = 1, skip next
     call	compare_distance
     goto	main_loop
 
