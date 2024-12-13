@@ -72,7 +72,7 @@ Distance_Unsafe:
     call	Stop
     call	Backward
     call	Stop
-    ;call	Backward
+    call	Backward
     return
 
 Distance_Safe:
